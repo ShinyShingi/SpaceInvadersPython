@@ -4,7 +4,7 @@ import time
 import random
 pygame.font.init()
 
-WIDTH, HEIGHT = 750, 750
+WIDTH, HEIGHT = 1000, 1000
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Space Invaders")
 
@@ -47,6 +47,8 @@ class Laser:
 
 class Ship:
     COOLDOWN = 30
+    score = 0
+    last_score = 0
     def __init__(self, x, y, health=100):
         self.x = x
         self.y = y
@@ -108,19 +110,19 @@ class Player(Ship):
                 for obj in objs:
                     if laser.collision(obj):
                         objs.remove(obj)
+                        Ship.score += 1
                         if laser in self.lasers:
                             self.lasers.remove(laser)
+
+
                         
     def draw(self, window):
         super().draw(window)
         self.healthbar(window)
 
     def healthbar(self, window):
-        pygame.draw.rect(window, (255, 0, 0),
-                         (self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width(), 10))
-        pygame.draw.rect(window, (0, 255, 0), (
-        self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width() * (self.health / self.max_health),
-        10))
+        pygame.draw.rect(window, (255, 0, 0), (self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width(), 10))
+        pygame.draw.rect(window, (0, 255, 0), (self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width() * (self.health / self.max_health), 10))
 
 
 class Enemy(Ship):
@@ -176,11 +178,14 @@ def main():
     def redraw_window():
         WIN.blit(BG, (0, 0))
         # draw text
-        level_label = main_font.render(f"Level: {level}", 1, (255, 255, 255))
-        lives_label = main_font.render(f"Lives: {lives}", 1, (255, 255, 255))
+        level_label = main_font.render(f"Level: {level}", True, (255, 255, 255))
+        lives_label = main_font.render(f"Lives: {lives}", True, (255, 255, 255))
+        score_label = main_font.render(f"Score: {Ship.score}", True, (255, 255, 255))
 
         WIN.blit(lives_label, (10, 10))
-        WIN.blit(level_label, (WIDTH - level_label.get_width() - 10, 10))
+        #WIN.blit(level_label, (WIDTH - level_label.get_width() - 10, 10))
+        WIN.blit(level_label, (10, 40))
+        WIN.blit(score_label, (10, 70))
 
         for enemy in enemies:
             enemy.draw(WIN)
@@ -245,9 +250,17 @@ def main():
                 player.health -= 10
                 enemies.remove(enemy)
 
+            if Ship.score % 10 == 0 and Ship.score > Ship.last_score:
+                Ship.last_score = Ship.score
+                lives += 1
+
             elif enemy.y + enemy.get_height() > HEIGHT:
-                lives -= 1
+            #    lives -= 1
                 enemies.remove(enemy)
+
+
+
+
 
         player.move_lasers(-laser_vel, enemies)
 
